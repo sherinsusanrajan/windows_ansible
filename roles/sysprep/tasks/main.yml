@@ -1,0 +1,9 @@
+---
+- name: templating
+  template: src=../../../templates/unattend.xml.j2 dest=C:\Windows\System32\Sysprep\unattend.xml
+
+
+- name: Sysprep
+  win_shell: 'C:\Windows\System32\Sysprep\Sysprep.exe /generalize /oobe /reboot /unattend:C:\Windows\System32\Sysprep\unattend.xml'
+  async: 120
+  poll: 0
