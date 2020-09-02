@@ -1,0 +1,13 @@
+---
+
+- name: copy powershell script to windows
+  template:
+    src: ../../../templates/RDS.ps1.j2
+    dest: C:\Windows\RDS.ps1
+
+
+- name: run the script to create RDS farm
+  win_shell:
+    'C:\\Windows\\RDS.ps1'
+
+
