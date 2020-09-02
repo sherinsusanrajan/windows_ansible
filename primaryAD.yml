@@ -1,0 +1,4 @@
+---
+- hosts: primary_domain_controller
+  roles:
+    - primary_domain_controller
