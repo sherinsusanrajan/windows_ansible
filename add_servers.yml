@@ -1,0 +1,5 @@
+---
+- hosts: addservers
+  gather_facts: no
+  roles:
+    - add_servers
