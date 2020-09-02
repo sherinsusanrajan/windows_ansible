@@ -1,0 +1,89 @@
+---
+- name: Install Active Directory
+  win_feature:
+     create_dns_delegation: no
+     dns_domain_name: "{{domain }}"
+     domain_mode: Win2012R2
+     domain_netbios_name: "{{netbios_domain }}"
+     forest_mode: Win2012R2
+     safe_mode_password: "{{domain_safemode_password}}"
+     name: AD-Domain-Services
+     include_management_tools: true
+     include_sub_features: true
+     state: present
+  register: result
+
+- name: Collect AD provision result
+  debug:
+    msg: "{{result}}"
+- name : pause for 10 seconds before provisioning another feature
+  pause:
+    seconds: 10
+
+# Configure DNS Feature
+- name: Install DNS SubFeature
+  win_feature:
+    name: DNS
+    include_sub_features: true
+    include_manageme---
+- name: Install Active Directory
+  win_feature:
+     create_dns_delegation: no
+     dns_domain_name: "{{domain }}"
+     domain_mode: Win2012R2
+     domain_netbios_name: "{{netbios_domain }}"
+     forest_mode: Win2012R2
+     safe_mode_password: "{{domain_safemode_password}}"
+     name: AD-Domain-Services
+     include_management_tools: true
+     include_sub_features: true
+     state: present
+  register: result
+
+- name: Collect AD provision result
+  debug:
+    msg: "{{result}}"
+- name : pause for 10 seconds before provisioning another feature
+  pause:
+    seconds: 10
+
+# Configure DNS Feature
+- name: Install DNS SubFeature
+  win_feature:- name: Collect dns provision result
+  debug:
+    msg: "{{dns_result}}"
+
+- name: Create new forest(Promote DC)
+  win_domain:
+    dns_domain_name: "{{ domain }}"
+    domain_netbios_name: "{{ netbios_domain }}"
+    safe_mode_password: "{{ domain_safemode_password }}"
+  register: create_forest_result
+- name: Collect computer name result
+  debug:
+    msg: "{{ create_forest_result }}"
+
+- name: reboot server after forest creation
+  win_reboot:
+    msg: "Promoting DC. Rebooting..."
+    pre_reboot_delay: 15
+    reboot_timeout: 600
+    post_reboot_delay: 420
+  when: create_forest_result.changed
+
+- name: Wait for system to become reachable over WinRM
+  wait_for_connection:
+    timeout: 100
+
+
+    name: DNS
+    include_sub_features: true
+    include_management_tools: true
+    state: present
+  register: dns_result
+
+nt_tools: true
+    state: present
+  register: dns_result
+  
+
