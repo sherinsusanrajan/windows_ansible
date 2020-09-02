@@ -1,0 +1,4 @@
+---
+- hosts: replica_domain_controller
+  roles:
+    - replica_domain_controller
