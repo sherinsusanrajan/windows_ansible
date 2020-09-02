@@ -1,0 +1,24 @@
+---
+- name: Disable IPv6 via Get-NetAdapter (2012 R2+ or 2016)
+  win_shell: |
+    Get-NetAdapter | ForEach-Object {Disable-NetAdapterBinding -InterfaceAlias $_.Name -ComponentID ms_tcpip6}
+  args:
+    creates: 'C:\DRS\Logs\Disable-IPv6.txt'
+
+
+- name: Update DNS IP of servers
+  win_dns_client:
+    adapter_names: '*'
+    ipv4_addresses:
+     - "{{ dns_ip1 }}"
+
+
+- name: Change dns suffix (copy powershell script to windows)
+  template:
+    src: ../../../templates/dns.ps1.j2
+    dest: C:\Windows\dns.ps1
+
+
+- name: run the script to update the dns suffix
+  win_shell: 'C:\Windows\dns.ps1'
+
