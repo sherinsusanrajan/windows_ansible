@@ -1,0 +1,95 @@
+---
+##Terminal Gateway
+#Join the new windows server to the existing domain
+- name: join domain
+  win_domain_membership:
+    dns_domain_name: "{{ domain }}"
+    domain_admin_user: "{{ domain_admin }}"
+    domain_admin_password: "{{ domain_admin_password }}"
+    state: domain
+  register: domain_joined
+
+- name: reboot after domain join
+  win_reboot:
+
+#configure roles and services for terminal gateway server
+- name: Install Remote Desktop Services
+  win_feature:
+    name: Remote-Desktop-Services,
+          RDS-Connection-Broker,
+          RDS-Gateway,
+          RDS-Web-Access
+    state: present
+  register: rds_result
+
+#- name: Collect RDS result
+#  debug:
+#    msg: "{{rds_result}}"
+- name: Install IIS features    Web-Http-Logging: yes
+    Web-Log-Libraries: yes
+    Web-Request-Monitor: yes
+    Web-Http-Tracing: yes
+    Web-Performance: yes
+    Web-Stat-Compression: yes
+    Web-Security: yes
+    Web-Filtering: yes
+    Web-Basic-Auth: yes
+    Web-Client-Auth: yes
+    Web-Windows-Auth: yes
+    Web-App-Dev: yes
+    Web-Net-Ext45: yes
+    Web-Asp-Net45: yes
+    Web-Isapi-Filter: yes
+    Web-Isapi-Ext: yes
+    Web-Mgmt-Tools: yes     state: present
+
+- name: Install other services
+  win_feature:
+     name: RPC-over-HTTP-Proxy,
+           SNMP-Service,
+           Windows-Internal-Database
+     state: present
+
+- name: Uninstall AD Tools
+  win_feature:
+    name: RSAT-AD-Tools,
+          RSAT-AD-PowerShell,
+          RSAT-ADDS,
+          RSAT-AD-AdminCenter,
+          RSAT-ADDS-Tools,
+          RSAT-ADLDS
+    state: absent
+
+- name: reboot after adding  roles
+  win_reboot:
+
+    Web-Mgmt-Console: yes
+    Web-Scripting-Tools: yes
+    Web-Mgmt-Compat: yes
+    Web-Metabase: yes
+    state: present
+  register: IIS_result
+
+- name: Collect IIS result
+  debug:
+    msg: "{{IIS_result}}"
+
+- name: Install Remote Server Administration Tools
+  win_feature:
+     name: RSAT,
+           RSAT-Feature-Tools,
+           RSAT-SNMP,
+           RSAT-Role-Tools,
+           RSAT-RDS-Tools,
+           RSAT-RDS-Gateway,
+           RSAT-NPAS
+- name: Install IIS features
+  win_feature:
+    name: Web-server, Web-WebServer        
+    Web-Common-Http: yes
+    Web-Default-Doc: yes
+    Web-Dir-Browsing: yes
+    Web-Http-Errors: yes
+    Web-Static-Content: yes
+    Web-Http-Redirect: yes
+    Web-Health: yes
