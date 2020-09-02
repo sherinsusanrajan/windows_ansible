@@ -1,0 +1,5 @@
+---
+
+- hosts: sessionhosts
+  roles:
+   - session_hosts
