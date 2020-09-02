@@ -1,0 +1,5 @@
+$networkConfig = Get-WmiObject Win32_NetworkAdapterConfiguration -filter "ipenabled = 'true'"
+$networkConfig.SetDnsDomain("{{ domain }}")
+$networkConfig.SetDynamicDNSRegistration($true,$true)
+ipconfig /registerdns
+~
