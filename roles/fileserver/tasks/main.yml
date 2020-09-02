@@ -1,0 +1,39 @@
+---
+
+- name: join domain
+  win_domain_membership:
+    dns_domain_name: "{{ domain }}"
+    domain_admin_user: "{{ domain_admin }}"
+    domain_admin_password: "{{ domain_admin_password }}"
+    state: domain
+  register: domain_joined
+
+- name: reboot after domain join
+  win_reboot:
+  when: domain_joined.reboot_required
+
+- name: Install file and storage services
+  win_feature:
+    name: FileAndStorage-Services, File-Services
+    FS-FileServer: yes
+    state: present
+  register: file_result
+
+- name: Collect file result
+  debug:
+    msg: "{{file_result}}"
+
+
+- name: Install Print and Document services
+  win_feature:
+    name: Print-Services
+    Print-Server: yes
+    state: present
+  register: print_result
+
+- name: Collect print and document services result
+  debug:
+    msg: "{{print_result}}"
+
+- name: reboot after domain join
+  win_reboot:
