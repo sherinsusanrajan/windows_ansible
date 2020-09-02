@@ -1,0 +1,90 @@
+---
+##Terminal session host
+
+#Join the new windows server to the existing domain
+- name: join domain
+  win_domain_membership:
+    dns_domain_name: "{{ domain }}"
+    domain_admin_user: "{{ domain_admin }}"
+    domain_admin_password: "{{ domain_admin_password }}"
+    state: domain
+  register: domain_joined
+
+- name: reboot after domain join
+  win_reboot:
+  when: domain_joined.reboot_required
+
+
+- name: Install Remote Desktop Services
+  win_feature:
+    name: Remote-Desktop-Services, RDS-RD-Server
+    state: present
+  register: rds_result
+
+- name: Collect RDS result
+  debug:
+    msg: "{{rds_result}}"
+
+
+- name: Install Remote Server Administration Tools
+  win_feature:
+     name: RSAT,
+           RSAT-Feature-Tools,
+           RSAT-SNMP,
+           RSAT-Role-Tools,
+           RSAT-RDS-Tools,
+           RSAT-NPAS,
+           RSAT-Print-Services,
+           RSAT-RDS-Licensing-Diagnosis-UI
+     state: present
+
+- name: Uninstall IIS
+  win_feature:
+    name: RSAT-SMTP,
+          RSAT-RDS-Gateway,
+          RSAT-AD-Tools,
+          RSAT-AD-PowerShell,
+          RSAT-ADDS,
+          RSAT-AD-AdminCenter,
+          RSAT-ADDS-Tools,
+          RSAT-ADLDS,
+          Web-Server,
+          Web-Mgmt-Tools,
+          Web-Mgmt-Compat,
+          Web-Metabase,
+          Web-Lgcy-Mgmt-Console
+    state: absent
+  register: iis_result
+
+- name: Collect IIS result
+  debug:    FS-FileServer: yes
+    state: present
+  register: file_result
+
+
+- name: Install Print and Document services
+  win_feature:
+    name: Print-Services
+    Print-Server: yes
+    state: present
+  register: print_result
+
+
+- name: reboot after adding  RDS and RDA roles
+  win_reboot:
+
+    msg: "{{iis_result}}"
+
+
+- name: Install other features
+  win_feature:
+    name: SNMP-Service,
+          Search-service
+          #          Desktop-Experience
+    state: present
+
+
+- name: Install file and storage services
+  win_feature:
+    name: FileAndStorage-Services
+    
