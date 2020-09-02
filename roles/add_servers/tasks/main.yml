@@ -1,0 +1,36 @@
+---
+- name: Add the servers to AD server manager
+  win_shell: |
+    Import-Module ServerManager
+    get-process ServerManager | stop-process –force
+    $file = get-item "$env:USERPROFILE\AppData\Roaming\Microsoft\Windows\ServerManager\ServerList.xml"
+    copy-item –path $file –destination $file-backup –force
+    $xml = [xml] (get-content $file )
+
+    $newserver = @($xml.ServerList.ServerInfo)[0].clone()
+    $newserver.name =  "{{ hostvars[groups['all'][5]]['computer_name']}}.{{domain}}"
+    $newserver.lastUpdateTime = "0001-01-01T00:00:00"
+    $newserver.status = "2"
+
+    $newserver1 = @($xml.ServerList.ServerInfo)[0].clone()
+    $newserver1.name = "{{ hostvars[groups['all'][4]]['computer_name']}}.{{domain}}"
+    $newserver1.lastUpdateTime = "0001-01-01T00:00:00"
+    $newserver1.status = "2"
+
+    $newserver2 = @($xml.ServerList.ServerInfo)[0].clone()
+    $newserver2.name = "{{ hostvars[groups['all'][3]]['computer_name']}}.{{domain}}"
+    $newserver2.lastUpdateTime = "0001-01-01T00:00:00"
+    $newserver2.status = "2"
+
+    $newserver3 = @($xml.ServerList.ServerInfo)[0].clone()
+    $newserver3.name = "{{ hostvars[groups['all'][2]]['computer_name']}}.{{domain}}"
+    $newserver3.lastUpdateTime = "0001-01-01T00:00:00"
+    $newserver3.status = "2"
+
+    $xml.ServerList.AppendChild($newserver)
+    $xml.ServerList.AppendChild($newserver1)
+    $xml.ServerList.AppendChild($newserver2)
+    $xml.ServerList.AppendChild($newserver3)
+    $xml.Save($file.FullName)
+    start-process –filepath $env:SystemRoot\System32\ServerManager.exe –WindowStyle Maximized
+
