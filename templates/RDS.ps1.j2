@@ -1,0 +1,33 @@
+#Importing the RDS Module into the PowerShell
+Import-Module RemoteDesktop
+
+# Create  Remote Desktop Environment
+New-RDSessionDeployment -ConnectionBroker "{{ hostvars[groups['all'][3]]['computer_name']}}.{{domain}}" -WebAccessServer "{{ hostvars[groups['all'][3]]['computer_name']}}.{{domain}}" -SessionHost @("{{ hostvars[groups['all'][4]]['computer_name']}}.{{domain}}","{{ hostvars[groups['all'][5]]['computer_name']}}.{{domain}}")
+
+start-sleep 100
+
+# Restart the session hosts
+shutdown /r /m  \\"{{ hostvars[groups['all'][4]]['computer_name']}}.{{domain}}" -t 0
+shutdown /r /m  \\"{{ hostvars[groups['all'][5]]['computer_name']}}.{{domain}}" -t 0
+
+
+start-sleep 300
+
+# Adding a Gateway
+Add-RDServer -Server "{{ hostvars[groups['all'][3]]['computer_name']}}.{{domain}}" -Role RDS-Gateway -ConnectionBroker "{{ hostvars[groups['all'][3]]['computer_name']}}.{{domain}}" -GatewayExternalFqdn {{External_DNS}}
+
+#Create a session collection
+New-RDSessionCollection -CollectionName {{Collection_Name}} -SessionHost @("{{ hostvars[groups['all'][4]]['computer_name']}}.{{domain}}","{{ hostvars[groups['all'][5]]['computer_name']}}.{{domain}}") -CollectionDescription "This Collection is for Desktop Sessions" -ConnectionBroker "{{ hostvars[groups['all'][3]]['computer_name']}}.{{domain}}"
+#Adding the Register Key for load balancer remotely on the Gateway Server
+#$NewSession = New-PSSession -ComputerName "{{groups['terminalgateway'][0] }}.{{domain}}"
+#Invoke-Command -Session $NewSession {$Cluster_Key = "SYSTEM\CurrentControlSet\Control\Terminal Server\ClusterSettings\"}
+#Invoke-Command -Session $NewSession {Cd HKLM:\$Cluster_Key}
+#Invoke-Command -Session $NewSession {Set-ItemProperty -Path. -Name DefaultTsvUrl -Type String -Value "tsv://MS Terminal Services Plugin.1.$Using:{{Collection_Name}}"}
+
+# Adding the Register Key for Server Gateway Farm
+#Invoke-Command -Session $NewSession {$RPC_Proxy_Key = "\SOFTWARE\Microsoft\Rpc\RpcProxy\"}
+#Invoke-Command -Session $NewSession {cd HKLM:\$RPC_Proxy_Key}
+#Invoke-Command -Session $NewSession {$GUID = New-Item -Path HKLM:\$RPC_Proxy_Key -Name LBSConfiguration\44e265dd-7daf-42cd-8560-3cdb6e7a2729 -Force}
+#Invoke-Command -Session $NewSession {cd HKLM:\$GUID}
+#Invoke-Command -Session $NewSession {New-ItemProperty -Path .\ -Name ConfigurationType -Type DWord -Value 1}
+#Invoke-Command -Session $NewSession {New-ItemProperty -Path .\ -Name ServerFarm -Type String -Value $Using:"{{ groups['terminalgateway'][0] }}.{{domain}}"';'$Using:{{External_DNS}}}
