@@ -1,0 +1,5 @@
+---
+
+- hosts: fileserver
+  roles:
+    - fileserver
